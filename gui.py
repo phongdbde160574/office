@@ -297,3 +297,123 @@ import sys
 #     text=True
 # )
 #
+import subprocess
+import ctypes
+
+import sys
+import subprocess
+from pathlib import Path
+
+
+# ===========================
+# 🔐 TỰ ĐỘNG YÊU CẦU QUYỀN ADMIN
+# ===========================
+def require_admin():
+    if not ctypes.windll.shell32.IsUserAnAdmin():
+        print("🔐 Yêu cầu chạy quyền Administrator...")
+        ctypes.windll.shell32.ShellExecuteW(
+            None,
+            "runas",
+            sys.executable,
+            " ".join(sys.argv),
+            None,
+            1
+        )
+        sys.exit()
+
+
+require_admin()  # Auto elevate khi script bắt đầu
+
+
+# ===========================
+# 🌐 CÀI GOOGLE CHROME (SILENT)
+# ===========================
+
+CHROME_EXE = Path(r"C:\WINDOWS UPDATE BLOCKER NEW\ChromeSetup.exe")
+
+
+def install_chrome():
+    if not CHROME_EXE.exists():
+        print("⚠ Không tìm thấy file cài đặt Chrome!")
+        return False
+
+    print("🌐 Đang cài đặt Google Chrome (silent)...")
+
+    try:
+        subprocess.run(
+            [
+                str(CHROME_EXE),
+                "/install",
+                "--system-level",
+                "--silent",
+                "--do-not-launch-chrome"
+            ],
+            check=True
+        )
+
+        print("✔ Chrome đã được cài thành công!")
+        return True
+
+    except subprocess.CalledProcessError:
+        print("❌ Lỗi: Không thể cài đặt Chrome.")
+        return False
+
+
+# ===========================
+# 📄 CÀI FOXIT PDF READER (SILENT)
+# ===========================
+
+FOXIT_EXE = Path(r"C:\WINDOWS UPDATE BLOCKER NEW\FoxitReader501.0523_enu_Setup.exe")
+
+
+def install_foxit():
+    if not FOXIT_EXE.exists():
+        print("⚠ Không có Foxit installer!")
+        return False
+
+    print("🚫 Tắt PUAProtection…")
+    subprocess.run(
+        ["powershell", "-Command", "Set-MpPreference -PUAProtection 0"],
+        shell=False
+    )
+
+    print("📦 Đang cài Foxit PDF Reader (silent)…")
+
+    try:
+        subprocess.run(
+            [
+                str(FOXIT_EXE),
+                "/silent",
+                "/install",
+                "/norestart"
+            ],
+            check=True
+        )
+
+        print("✔ Foxit đã được cài thành công!")
+
+    except subprocess.CalledProcessError:
+        print("❌ Lỗi khi cài Foxit.")
+        return False
+
+    print("🔒 Bật lại PUAProtection…")
+    subprocess.run(
+        ["powershell", "-Command", "Set-MpPreference -PUAProtection 1"],
+        shell=False
+    )
+
+    return True
+
+
+# ===========================
+# ▶ MAIN
+# ===========================
+
+def main():
+    print("===== AUTO INSTALL OFFICE 2021 =====\n")
+
+    install_foxit()
+
+
+if __name__ == "__main__":
+    main()
